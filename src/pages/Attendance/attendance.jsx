@@ -3,12 +3,14 @@ import AppLayout from "../../components/applayout/AppLayout";
 import "../../components/applayout/styles.css";
 import requestApi from "../../components/utils/axios";
 import Cookies from "js-cookie";
+import CryptoJS from "crypto-js";
 import InputBox from "../../components/TextBox/textbox";
-import "./attendence.css";
+import "./attendance.css";
+import toast from "react-hot-toast";
 import RoleAttendance from "./roleAttendance";
 
 function Attendance() {
-  return <AppLayout rId={1} body={<Body />} />
+  return <AppLayout  body={<Body />} />
         
 }
 
@@ -24,8 +26,9 @@ function Body() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedRow, setExpandedRow] = useState(null);
 
-  const id = Cookies.get("id");
-
+  const deid = Cookies.get("id");
+  const secretKey = "secretKey123";
+  const id = CryptoJS.AES.decrypt(deid, secretKey).toString(CryptoJS.enc.Utf8)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -108,12 +111,16 @@ function Body() {
           student: studentId,
           slot: slotId,
         });
+        toast.success("Attendance Logged")
+
       } else {
         await requestApi("POST", "/arr-attendence", {
           faculty: id,
           student: studentId,
           slot: slotId,
         });
+        toast.success("Attendance Logged")
+
       }
 
       setAttendanceData((prev) => {
@@ -127,17 +134,23 @@ function Body() {
         }
       });
     } catch (error) {
+      toast.error("Failed to Log Attendance")
+
       console.error("Error handling attendance data:", error);
 
       if (error.response && error.response.data) {
-        alert(
-          `Error: ${
-            error.response.data.error ||
-            "An error occurred while handling attendance."
-          }`
-        );
+        // alert(
+        //   `Error: ${
+        //     error.response.data.error ||
+        //     "An error occurred while handling attendance."
+        //   }`
+        // );
+      toast.error("Failed to Log Attendance")
+
       } else {
-        alert("Student is not approved.");
+        // alert("Student is not approved.");
+      toast.error(" Attendance Status is not approved.")
+
       }
     }
   };
@@ -162,37 +175,52 @@ function Body() {
   const renderTimeSlots = (row) => {
     return (
       <div className="time-slots">
-        {timeSlots.map((slot) => (
-          <div key={slot.id} className="time-slot">
-            <input
-              type="checkbox"
-              checked={attendanceData.some(
-                (record) =>
-                  record.student === row.id && record.slot === slot.id
-              )}
-              onChange={(event) =>
-                handleCheckboxClick(event, row.id, slot.id)
-              }
-              disabled={false}
-              onClick={(event) => event.stopPropagation()} // Prevent event bubbling to row click
-            />
-            <span>{slot.label}</span>
-          </div>
-        ))}
-      </div>
+  {timeSlots.map((slot) => (
+    <div key={slot.id} className="time-slot checkbox-wrapper-4">
+      <input
+        className="inp-cbx"
+        id={slot.id}
+        type="checkbox"
+        checked={attendanceData.some(
+          (record) =>
+            record.student === row.id && record.slot === slot.id
+        )}
+        onChange={(event) =>
+          handleCheckboxClick(event, row.id, slot.id)
+        }
+        disabled={false}
+        onClick={(event) => event.stopPropagation()} 
+      />
+      <label className="cbx" htmlFor={slot.id}>
+        <span>
+          <svg width="12px" height="10px">
+            <use xlinkHref="#check-4"></use>
+          </svg>
+        </span>
+        <span>{slot.label}</span>
+      </label>
+      <svg className="inline-svg">
+        <symbol id="check-4" viewBox="0 0 12 10">
+          <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+        </symbol>
+      </svg>
+    </div>
+  ))}
+</div>
+
     );
   };
 
   return (
     <div className="attendance-container">
       <h2>Students Attendance (Hour)</h2>
-
+{/* 
       <div
         onClick={() => setShowRoleAttendance(true)}
         style={{ cursor: "pointer", color: "blue" }}
       >
         Role Based Attendance
-      </div>
+      </div> */}
 
       <div className="flex-box">
         <h4>NIP / Re Appear Student List</h4>

@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react";
-import AppLayout from "../../../components/applayout/AppLayout";
-import "../../../components/applayout/styles.css";
+// import AppLayout from "../../../components/applayout/AppLayout";
+// import "../../../components/applayout/styles.css";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, TablePagination, TextField } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import requestApi from "../../../components/utils/axios";
-import Select from "react-select";  // React Select for dropdowns
+import Select from "react-select"; 
 import Button from "../../../components/Button/Button";
+import toast from "react-hot-toast";
+import InputBox from "../../../components/TextBox/textbox";
 import './mapStudent.css'
+
 function MapStudent() {
-  return <Body/>
+  return <Body />;
 }
 
 function Body() {
@@ -14,11 +19,14 @@ function Body() {
   const [students, setStudents] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [roleStudentData, setRoleStudentData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch roles for single select dropdown
   useEffect(() => {
-    requestApi
-      ("GET","/map-role")
+    requestApi("GET", "/map-role-select")
       .then((response) => {
         const formattedRoles = response.data.map((role) => ({
           value: role.id,
@@ -31,21 +39,21 @@ function Body() {
       });
   }, []);
 
-  // Fetch students for multi-select dropdown
   useEffect(() => {
-    requestApi
-      ("GET","/get-type2")
-      .then((response) => {
-        const formattedStudents = response.data.map((student) => ({
-          value: student.id,
-          label: `${student.name} - ${student.register_number}`,
-        }));
-        setStudents(formattedStudents);
-      })
-      .catch((error) => {
-        console.error("Error fetching students:", error);
-      });
-  }, []);
+    if (selectedYear) {
+      requestApi("GET", `/all-students?year=${selectedYear.value}`)
+        .then((response) => {
+          const formattedStudents = response.data.map((student) => ({
+            value: student.id,
+            label: `${student.name} - ${student.register_number}`,
+          }));
+          setStudents(formattedStudents);
+        })
+        .catch((error) => {
+          console.error("Error fetching students:", error);
+        });
+    }
+  }, [selectedYear]); // Dependency on selectedYear
 
   // Handle form submission
   const handleSubmit = () => {
@@ -54,46 +62,159 @@ function Body() {
       studentIds: selectedStudents.map((student) => student.value),
     };
 
-    requestApi
-      ("POST","/map-role", payload)
+    requestApi("POST", "/map-role", payload)
       .then((response) => {
         console.log("Mapping successful:", response.data);
-        // Handle success (e.g., show a notification or reset the form)
+        toast.success("Role Mapped successfully!");
+
+        setSelectedRole(null);
+        setSelectedStudents([]);
+        setSelectedYear(null)
       })
       .catch((error) => {
         console.error("Error in mapping students to role:", error);
-        // Handle error (e.g., show an error message)
+        toast.error("Error in mapping students to role");
+      });
+
+  };
+  useEffect(() => {
+    requestApi("GET", "/role-student")
+      .then((response) => {
+        setRoleStudentData(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching role-student data:", error);
+      });
+  }, []);
+
+  const handleDelete = (id) => {
+    requestApi("PUT", `/role-student?id=${id}`)
+      .then(() => {
+        toast.success("Role-Student mapping deleted successfully!");
+        setRoleStudentData((prevData) => prevData.filter((item) => item.id !== id));
+      })
+      .catch((error) => {
+        console.error("Error deleting role-student mapping:", error);
+        toast.error("Error deleting role-student mapping");
       });
   };
+
+  const handleSearch = (event) => {
+    setSearchQuery(event.target.value.toLowerCase());
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const filteredData = roleStudentData.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery) ||
+    item.register_number.toLowerCase().includes(searchQuery) ||
+    item.role.toLowerCase().includes(searchQuery)
+  );
+  
+  const yearOptions = [
+    { value: "I", label: "I" },
+    { value: "II", label: "II" },
+    { value: "III", label: "III" },
+    { value: "IV", label: "IV" },
+  ];
 
   return (
     <div className="map-student-container">
       <h3>Map Students to Other Role</h3>
+      <div className="map-student">
+        <div className="form-group">
+          <label htmlFor="role-select">Select Role</label>
+          <Select
+            id="role-select"
+            options={roles}
+            value={selectedRole}
+            onChange={setSelectedRole}
+            placeholder="Select Role"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="role-select">Select Year</label>
+          <Select
+            id="role-select"
+            options={yearOptions}
+            value={selectedYear}
+            onChange={setSelectedYear}
+            placeholder="Select Year"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="students-select">Select Students</label>
+          <Select
+            id="students-select"
+            options={students}
+            value={selectedStudents}
+            onChange={setSelectedStudents}
+            placeholder="Select students"
+            isMulti
+          />
+        </div>
+        <Button onClick={handleSubmit} label="Submit" />
+      </div>
+      <div className="map-table">
+        <h4>Mapped Students</h4>
+      <div>
+        <InputBox
+          label="Search"
+          onChange={handleSearch}
+          placeholder="Search.."
+        />
+      </div>
       <br />
-      <div className="form-group">
-        <label htmlFor="role-select">Select Role</label>
-        <Select
-          id="role-select"
-          options={roles}
-          value={selectedRole}
-          onChange={setSelectedRole}
-          placeholder="Select "
+      <div>
+        <Paper>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell><b>Role</b></TableCell>
+                <TableCell><b>Student Name</b></TableCell>
+                <TableCell><b>Register Number</b></TableCell>
+                <TableCell><b>Actions</b></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.role}</TableCell>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.register_number}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      onClick={() => handleDelete(row.id)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredData.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
         />
+            </Paper>
       </div>
-      <div className="form-group">
-        <label htmlFor="students-select">Select Students</label>
-        <Select
-          id="students-select"
-          options={students}
-          value={selectedStudents}
-          onChange={setSelectedStudents}
-          placeholder="Select students"
-          isMulti
-        />
       </div>
-      <Button  onClick={handleSubmit}
-        label='Submit'
-      />
     </div>
   );
 }

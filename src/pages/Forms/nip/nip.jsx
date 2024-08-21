@@ -1,77 +1,91 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
 import AppLayout from "../../../components/applayout/AppLayout";
-import '../../../components/applayout/styles.css'
+import '../../../components/applayout/styles.css';
 import requestApi from "../../../components/utils/axios";
 import Button from "../../../components/Button/Button";
-import './nip.css'
+import toast from "react-hot-toast";
+import './nip.css';
+import debounce from 'lodash/debounce'; 
 
 function Nip() {
-    return <Body/>
+    return <Body />;
 }
 
 function Body() {
-    const [options, setOptions] = useState([]);
-    const [option, setOption] = useState([]);
-    const [selectedOptions, setSelectedOptions] = useState([]);
-    const [selectedOption, setSelectedOption] = useState([]);
+    const [type1Options, setType1Options] = useState([]);
+    const [type2Options, setType2Options] = useState([]);
+    const [selectedType1Options, setSelectedType1Options] = useState([]);
+    const [selectedType2Options, setSelectedType2Options] = useState([]);
+    const [searchTermType1, setSearchTermType1] = useState(''); // Search term for Type 1
+    const [searchTermType2, setSearchTermType2] = useState(''); // Search term for Type 2
 
-    useEffect(() => {
-        requestApi("GET", '/get-type1')
+    const fetchType1Students = useCallback(debounce((query) => {
+        requestApi("GET", `/get-type1?search=${query}`)
             .then(response => {
                 const data = response.data.map(item => ({
                     value: item.id,
                     label: `${item.name} - ${item.register_number}`
                 }));
-                setOptions(data);
+                setType1Options(data);
             })
             .catch(error => {
-                console.error("Error fetching data", error);
+                console.error("Error fetching Type 1 students", error);
             });
-    }, []);
+    }, 300), []); // Debounce to limit API calls
 
-    const handleChange = selected => {
-        setSelectedOptions(selected);
+    // Fetch Type 2 Students with search query
+    const fetchType2Students = useCallback(debounce((query) => {
+        requestApi("GET", `/get-type2?search=${query}`)
+            .then(response => {
+                const data = response.data.map(item => ({
+                    value: item.id,
+                    label: `${item.name} - ${item.register_number}`
+                }));
+                setType2Options(data);
+            })
+            .catch(error => {
+                console.error("Error fetching Type 2 students", error);
+            });
+    }, 300), []); // Debounce to limit API calls
+
+    useEffect(() => {
+        fetchType1Students(searchTermType1);
+        fetchType2Students(searchTermType2);
+    }, [searchTermType1, searchTermType2, fetchType1Students, fetchType2Students]);
+
+    const handleType1Change = selected => {
+        setSelectedType1Options(selected);
     };
 
-    const handleSubmit = () => {
-        const ids = selectedOptions.map(option => option.value);
-        console.log("Data to be sent to /change-type2:", ids);
+    const handleType2Change = selected => {
+        setSelectedType2Options(selected);
+    };
+
+    const handleSubmitType1 = () => {
+        const ids = selectedType1Options.map(option => option.value);
         requestApi("PUT", '/change-type2', ids)
             .then(response => {
-                console.log("Data submitted successfully", response.data);
+                toast.success("Students changed to Type 2 successfully!");
+                setSelectedType1Options([]); // Reset selected options after submission
+                setSearchTermType1(''); // Clear search term
             })
             .catch(error => {
+                toast.error("Error changing students to Type 2.");
                 console.error("Error submitting data", error);
             });
     };
 
-    useEffect(() => {
-        requestApi("GET", '/get-type2')
-            .then(response => {
-                const data = response.data.map(item => ({
-                    value: item.id,
-                    label: `${item.name} - ${item.register_number}`
-                }));
-                setOption(data);
-            })
-            .catch(error => {
-                console.error("Error fetching data", error);
-            });
-    }, []);
-
-    const handleChangetype = selected => {
-        setSelectedOption(selected);
-    };
-
-    const handleSubmittype = () => {
-        const ids = selectedOption.map(option => option.value);
-        console.log("Data to be sent to /change-type1:", ids);
+    const handleSubmitType2 = () => {
+        const ids = selectedType2Options.map(option => option.value);
         requestApi("PUT", '/change-type1', ids)
             .then(response => {
-                console.log("Data submitted successfully", response.data);
+                toast.success("Students changed to Type 1 successfully!");
+                setSelectedType2Options([]); // Reset selected options after submission
+                setSearchTermType2(''); // Clear search term
             })
             .catch(error => {
+                toast.error("Error changing students to Type 1.");
                 console.error("Error submitting data", error);
             });
     };
@@ -82,22 +96,26 @@ function Body() {
                 <h3>Change the Student to NIP / Re-Appear</h3>
                 <Select
                     isMulti
-                    options={options}
-                    onChange={handleChange}
-                    placeholder="Select students..."
+                    options={type1Options}
+                    onChange={handleType1Change}
+                    value={selectedType1Options}
+                    placeholder="Search students..."
+                    onInputChange={(inputValue) => setSearchTermType1(inputValue)}
                 />
-                <Button onClick={handleSubmit} label = 'Submit'/>
+                <Button onClick={handleSubmitType1} label="Submit" />
             </div>
             <br />
             <div className="nip">
-                <h3>Change the Student from NIP</h3>
+                <h3>NIP/Re-Appear to Academics</h3>
                 <Select
                     isMulti
-                    options={option}
-                    onChange={handleChangetype}
-                    placeholder="Select students..."
+                    options={type2Options}
+                    onChange={handleType2Change}
+                    value={selectedType2Options}
+                    placeholder="Search students..."
+                    onInputChange={(inputValue) => setSearchTermType2(inputValue)}
                 />
-                <Button onClick={handleChangetype} label = 'Submit'/>
+                <Button onClick={handleSubmitType2} label="Submit" />
             </div>
         </div>
     );

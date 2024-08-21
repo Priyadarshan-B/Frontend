@@ -1,2 +1,3 @@
-const apiHost = "http://10.30.10.13/api/attendance";
+// const apiHost = "https://learnathon.bitsathy.ac.in/attendance/api";
+const apiHost = "http://localhost:5000/attendance/api"
 export default apiHost;

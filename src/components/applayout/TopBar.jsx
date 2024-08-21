@@ -6,12 +6,16 @@ import Button from "../Button/Button";
 import LogoutIcon from '@mui/icons-material/Logout';
 import QueryStatsTwoToneIcon from '@mui/icons-material/QueryStatsTwoTone';
 import Cookies from "js-cookie";
+import CryptoJS from "crypto-js";
 import requestApi from "../utils/axios";
+import logo from '../../assets/logo.png'
 
 
 function TopBar(props) {
   const [modalOpen, setModalOpen] = useState(false);
-  const name = Cookies.get('name').toUpperCase() || '';
+  const name = Cookies.get('name');
+  const secretKey = "secretKey123";
+  const dename= CryptoJS.AES.decrypt(name, secretKey).toString(CryptoJS.enc.Utf8)
   const handleOpenModal = () => {
     setModalOpen(true);
   };
@@ -25,7 +29,7 @@ function TopBar(props) {
       
       Cookies.remove("token");
       console.log(Cookies.get('token'));
-      window.location.href = "/login";
+      window.location.href = "/attendance/login";
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -35,13 +39,13 @@ function TopBar(props) {
     <div
       className="app-topbar"
       style={{
-        backgroundColor: "#f4f6fa",
+        backgroundColor: "#ffffff",
         display: "flex",
-        padding: "10px 10px",
+        padding: "5px 1px 0px 10px",
         justifyContent: "space-between",
         alignItems: "center",
         gap: 20,
-        // borderBottom: "0.1px solid rgba(128, 128, 128, 0.296)"
+        borderBottom:"1px solid #f2f2f2"
       }}
     >
       <div
@@ -55,11 +59,12 @@ function TopBar(props) {
         <div onClick={props.sidebar} className="sidebar-menu">
           <MenuRoundedIcon sx={{ color: "#472d2d", cursor: "pointer" }} />
         </div>
-        <div className="app-name"><QueryStatsTwoToneIcon sx={{ fontSize: "30px", color: "#1c0c6a" }} />ATTENDANCE</div>
+        <div className="logo"> <img src={logo} alt="" height={'50px'} /></div>
+        <div className="app-name">ATTENDANCE</div>
       </div>
       <div className="topbar-right-content">
         <div>
-          <p className="user-name">{name}</p>
+          <p className="user-name">{dename}</p>
         </div>
         <div onClick={handleOpenModal}>
           <LogoutIcon sx={{ color: "#1c0c6a", cursor: "pointer" }} />
