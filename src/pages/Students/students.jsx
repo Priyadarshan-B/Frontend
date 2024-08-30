@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import AppLayout from "../../components/applayout/AppLayout";
-import "../../components/applayout/styles.css";
 import Cookies from "js-cookie";
 import CryptoJS from "crypto-js";
 import requestApi from "../../components/utils/axios";
-import "./stu_dashboard.css";
+import "../Stu_Dashboard/stu_dashboard.css";
 import Chart from "react-apexcharts";
 import LiquidGauge from "react-liquid-gauge";
 import moment from "moment";
@@ -18,7 +16,6 @@ import { RiWaterPercentFill } from "react-icons/ri";
 import { BsFillCalendar2MonthFill } from "react-icons/bs";
 import { LuCalendarRange } from "react-icons/lu";
 import CountUp from "react-countup";
-import calendar from "../../assets/calendar.png";
 import {
   Table,
   TableBody,
@@ -30,18 +27,18 @@ import {
   TablePagination,
 } from "@mui/material";
 
-function StuDashboard({id}) {
-  return <AppLayout rId={2} body={<Body id={id} />} />;
+function StudentDashboard({id, roll}) {
+  return  <Body id={id} roll={roll} />;
 }
 
-function Body() {
-  const deroll = Cookies.get("roll");
-  const deid = Cookies.get("id");
-  const secretKey = "secretKey123";
-  const roll = CryptoJS.AES.decrypt(deroll, secretKey).toString(
-    CryptoJS.enc.Utf8
-  );
-  const id = CryptoJS.AES.decrypt(deid, secretKey).toString(CryptoJS.enc.Utf8);
+function Body({id, roll}) {
+//   const deroll = Cookies.get("roll");
+//   const deid = Cookies.get("id");
+//   const secretKey = "secretKey123";
+//   const roll = CryptoJS.AES.decrypt(deroll, secretKey).toString(
+//     CryptoJS.enc.Utf8
+//   );
+//   const id = CryptoJS.AES.decrypt(deid, secretKey).toString(CryptoJS.enc.Utf8);
   const [studentDetails, setStudentDetails] = useState(null);
   const [attendanceDetails, setAttendanceDetails] = useState([]);
   const [placement, setPlacement] = useState([]);
@@ -348,6 +345,7 @@ function Body() {
       <div className="attendance-percentage-and-status">
         <div className="student-details-container">
           <div className="guage">
+            <br />
             <h3>Attendance Percentage</h3>
             <div>
               <LiquidGauge
@@ -431,13 +429,14 @@ function Body() {
         <div className="attendance-percent-container">
           <h3
             style={{
-              backgroundColor: "rgb(113 137 255 / 13%)",
+              backgroundColor: "#2a3645",
               padding: "10px",
               margin: "0px 0px 0px 0px",
-              border: "1px solid blue",
+              border: "1px solid black",
               borderRadius: "5px",
-              color: "#000078",
+              color: "#ffff",
               boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+              textAlign:'center'
             }}
           >
             Attendance & Placement Details
@@ -447,8 +446,8 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                backgroundColor: "#dcffd6",
-                border: "1px solid #4ddc72",
+                // backgroundColor: "#dcffd6",
+                // border: "1px solid #4ddc72",
               }}
             >
               <div className="icons-flex">
@@ -485,8 +484,8 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                backgroundColor: "#ffe5e5",
-                border: "1px solid red ",
+                // backgroundColor: "#ffe5e5",
+                // border: "1px solid red ",
               }}
             >
               <div className="icons-flex">
@@ -523,8 +522,8 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                backgroundColor: "#fff5e4",
-                border: "1px solid #ffd691 ",
+                // backgroundColor: "#fff5e4",
+                // border: "1px solid #ffd691 ",
               }}
             >
               <div className="icons-flex">
@@ -596,8 +595,8 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                backgroundColor: "#cdd8ff",
-                border: "1px solid #2c7cf3 ",
+                // backgroundColor: "#cdd8ff",
+                // border: "1px solid #2c7cf3 ",
               }}
             >
               <div className="icons-flex">
@@ -635,8 +634,8 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                backgroundColor: "#f1ebff",
-                border: "1px solid #ba9dff",
+                // backgroundColor: "#f1ebff",
+                // border: "1px solid #ba9dff",
               }}
             >
               <div className="icons-flex">
@@ -673,8 +672,8 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                backgroundColor: "#e6fff5",
-                border: "1px solid #5fffbf",
+                // backgroundColor: "#e6fff5",
+                // border: "1px solid #5fffbf",
               }}
             >
               <div className="icons-flex">
@@ -710,7 +709,7 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                border: "1px solid #343434",
+                // border: "1px solid #343434",
               }}
             >
               <div className="icons-flex">
@@ -746,8 +745,8 @@ function Body() {
             <div
               className="summary-item"
               style={{
-                backgroundColor: "#fffdee",
-                border: "1px solid yellow",
+                backgroundColor: "#ffff",
+                // border: "1px solid yellow",
               }}
             >
               <div className="icons-flex">
@@ -802,13 +801,14 @@ function Body() {
         <div className="leave-details">
           <h3
             style={{
-              backgroundColor: "rgb(113 137 255 / 13%)",
+              backgroundColor: "#2a3645",
               padding: "10px",
               margin: "0px 0px 0px 0px",
-              border: "1px solid blue",
+              border: "1px solid black",
               borderRadius: "5px",
-              color: "#000078",
+              color: "#fff",
               boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+              textAlign:'center'
             }}
           >
             Leave Details
@@ -945,13 +945,13 @@ function Body() {
         <div className="att_det_others">
           <h3
             style={{
-              backgroundColor: "rgb(113 137 255 / 13%)",
-              padding: "10px",
-              margin: "0px 0px 0px 0px",
-              border: "1px solid blue",
-              borderRadius: "5px",
-              color: "#000078",
-              boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+              // backgroundColor: "",
+              // padding: "10px",
+              // margin: "0px 0px 0px 0px",
+              // border: "1px solid black",
+              // borderRadius: "5px",
+              // color: "#fff",
+              // boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
             }}
           >
             <center>Biometric History</center>
@@ -1115,4 +1115,4 @@ function Body() {
   );
 }
 
-export default StuDashboard;
+export default StudentDashboard;
